@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(pip *)",
+      "PowerShell(python -m pip --version)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:docs.livekit.io)",
+      "WebSearch"
+    ]
+  }
+}
