@@ -6,7 +6,7 @@
   :root {
     --background: 0 0% 100%;
     --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
+    --card: 0 0% 98%;
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
@@ -24,13 +24,17 @@
     --input: 214.3 31.8% 91.4%;
     --ring: 142.1 76.2% 36.3%;
     --radius: 0.5rem;
+    --font-sans: 'Geist Variable', system-ui, sans-serif;
+    --font-heading: 'Instrument Serif', serif;
   }
 
   .dark {
     --background: 222.2 84% 4.9%;
     --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
+    --card: 217.2 32.6% 8%;
     --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
     --primary: 142.1 70.6% 45.3%;
     --primary-foreground: 144.9 80.4% 10%;
     --secondary: 217.2 32.6% 17.5%;
@@ -53,5 +57,28 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: var(--font-sans);
   }
+  h1, h2, h3 {
+    font-family: var(--font-heading);
+  }
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+[data-magicui-theme-vt="active"] ::view-transition-new(root) {
+  clip-path: var(--magicui-theme-vt-clip-from);
+  animation: none;
+}
+
+[data-magicui-theme-vt="active"] ::view-transition-old(root) {
+  display: none;
+}
+
+[data-magicui-theme-vt="active"] {
+  view-transition-name: none;
 }

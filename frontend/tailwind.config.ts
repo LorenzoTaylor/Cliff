@@ -9,8 +9,11 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ["var(--font-sans)", "system-ui", "sans-serif"],
+        heading: ["var(--font-heading)", "serif"],
+      },
       colors: {
-        // Cliff brand — earthy outdoor palette
         forest: {
           50: "#f0fdf4",
           500: "#22c55e",
