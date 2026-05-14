@@ -38,6 +38,9 @@ build/
 .next/
 out/
 
+# Claude Code
+.claude/
+
 # IDE
 .vscode/
 .idea/
