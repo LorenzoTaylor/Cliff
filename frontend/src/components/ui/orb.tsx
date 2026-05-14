@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useMemo, useRef } from "react"
-import { useTexture } from "@react-three/drei"
 import { Canvas, useFrame, useThree } from "@react-three/fiber"
 import * as THREE from "three"
 
@@ -93,9 +92,7 @@ function Scene({
   const targetColor1Ref = useRef(new THREE.Color(colors[0]))
   const targetColor2Ref = useRef(new THREE.Color(colors[1]))
   const animSpeedRef = useRef(0.1)
-  const perlinNoiseTexture = useTexture(
-    "https://storage.googleapis.com/eleven-public-cdn/images/perlin-noise.png"
-  )
+  const perlinNoiseTexture = useMemo(makeNoiseTexture, [])
 
   const agentRef = useRef<AgentState>(agentState)
   const modeRef = useRef<"auto" | "manual">(volumeMode)
@@ -149,7 +146,6 @@ function Scene({
     }
     const u = mat.uniforms
     u.uTime.value += delta * 0.5
-    if (u.uOpacity.value < 1) u.uOpacity.value = Math.min(1, u.uOpacity.value + delta * 2)
 
     let targetIn = 0
     let targetOut = 0.3
@@ -195,8 +191,6 @@ function Scene({
   }, [gl])
 
   const uniforms = useMemo(() => {
-    perlinNoiseTexture.wrapS = THREE.RepeatWrapping
-    perlinNoiseTexture.wrapT = THREE.RepeatWrapping
     const isDark =
       typeof document !== "undefined" &&
       document.documentElement.classList.contains("dark")
@@ -210,9 +204,9 @@ function Scene({
       uInverted: new THREE.Uniform(isDark ? 1 : 0),
       uInputVolume: new THREE.Uniform(0),
       uOutputVolume: new THREE.Uniform(0),
-      uOpacity: new THREE.Uniform(0),
+      uOpacity: new THREE.Uniform(1),
     }
-  }, [perlinNoiseTexture, offsets])
+  }, [offsets, perlinNoiseTexture])
 
   return (
     <mesh ref={circleRef}>
@@ -225,6 +219,47 @@ function Scene({
       />
     </mesh>
   )
+}
+
+function noiseFract(x: number) { return x - Math.floor(x) }
+function noiseHash2(px: number, py: number): [number, number] {
+  return [
+    noiseFract(Math.sin(px * 127.1 + py * 311.7) * 43758.5453),
+    noiseFract(Math.sin(px * 269.5 + py * 183.3) * 43758.5453),
+  ]
+}
+function noiseJS(x: number, y: number): number {
+  const ix = Math.floor(x), iy = Math.floor(y)
+  const fx = x - ix, fy = y - iy
+  const ux = fx * fx * (3 - 2 * fx)
+  const uy = fy * fy * (3 - 2 * fy)
+  const [h00x, h00y] = noiseHash2(ix, iy)
+  const [h10x, h10y] = noiseHash2(ix + 1, iy)
+  const [h01x, h01y] = noiseHash2(ix, iy + 1)
+  const [h11x, h11y] = noiseHash2(ix + 1, iy + 1)
+  const n00 = h00x * fx + h00y * fy
+  const n10 = h10x * (fx - 1) + h10y * fy
+  const n01 = h01x * fx + h01y * (fy - 1)
+  const n11 = h11x * (fx - 1) + h11y * (fy - 1)
+  const nx0 = n00 + ux * (n10 - n00)
+  const nx1 = n01 + ux * (n11 - n01)
+  return 0.5 + 0.5 * (nx0 + uy * (nx1 - nx0))
+}
+function makeNoiseTexture(): THREE.DataTexture {
+  const size = 256
+  const data = new Uint8Array(size * size * 4)
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
+      const v = Math.floor(noiseJS(x / 32, y / 32) * 255)
+      const i = (y * size + x) * 4
+      data[i] = v; data[i + 1] = v; data[i + 2] = v; data[i + 3] = 255
+    }
+  }
+  const tex = new THREE.DataTexture(data, size, size, THREE.RGBAFormat)
+  tex.wrapS = THREE.RepeatWrapping
+  tex.wrapT = THREE.RepeatWrapping
+  tex.needsUpdate = true
+  return tex
 }
 
 function splitmix32(a: number) {
@@ -398,6 +433,8 @@ void main() {
     vec3 color4 = vec3(1.0, 1.0, 1.0);
     float luminance = mix(color.r, 1.0 - color.r, uInverted);
     color.rgb = colorRamp(luminance, color1, color2, color3, color4);
+    float brightness = dot(color.rgb, vec3(0.299, 0.587, 0.114));
+    color.a *= smoothstep(0.05, 0.45, brightness);
     color.a *= uOpacity;
     gl_FragColor = color;
 }

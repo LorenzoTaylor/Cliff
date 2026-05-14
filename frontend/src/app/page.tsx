@@ -1,66 +1,34 @@
 "use client";
 
 import { useState } from "react";
-import { LiveKitRoom, RoomAudioRenderer, useVoiceAssistant } from "@livekit/components-react";
-import { AgentPanel, LiveKitTranscript } from "@/components/AgentPanel";
-import { ChatBar } from "@/components/ChatBar";
+import { LiveKitRoom, RoomAudioRenderer } from "@livekit/components-react";
+import { ConnectedView } from "@/components/ConnectedView";
+import { ControlDock } from "@/components/ControlDock";
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
-import { type AgentState } from "@/components/ui/orb";
+import { useCallSession } from "@/hooks/use-call-session";
+import { cn } from "@/lib/utils";
 
-function toOrbState(state?: string): AgentState {
-  if (state === "listening") return "listening";
-  if (state === "thinking") return "thinking";
-  if (state === "speaking") return "talking";
-  return null;
-}
-
-function toStatusText(state?: string): string {
-  const map: Record<string, string> = {
-    connecting: "Connecting...",
-    initializing: "Connecting...",
-    connected: "Connected",
-    listening: "Listening...",
-    thinking: "Thinking...",
-    speaking: "Speaking",
-  };
-  return map[state ?? ""] ?? "Tap to speak";
-}
-
-function ConnectedContent() {
-  const { state } = useVoiceAssistant();
-  return (
-    <AgentPanel agentState={toOrbState(state)} statusText={toStatusText(state)}>
-      <LiveKitTranscript />
-    </AgentPanel>
-  );
-}
+type LayoutState = "hidden" | "panel" | "sidebar";
 
 export default function Home() {
-  const [token, setToken] = useState<string | null>(null);
-  const [serverUrl, setServerUrl] = useState<string | null>(null);
-  const [isConnecting, setIsConnecting] = useState(false);
+  const { token, serverUrl, isConnected, controlState, startCall, endCall, setAgentState } =
+    useCallSession();
+  // future: call setSidebarMode(true) when the sidebar trigger is built
+  const [sidebarMode, setSidebarMode] = useState(false);
 
-  async function startCall() {
-    setIsConnecting(true);
-    try {
-      const res = await fetch("/api/token");
-      const data = await res.json();
-      setToken(data.token);
-      setServerUrl(data.serverUrl);
-    } finally {
-      setIsConnecting(false);
-    }
+  const layoutState: LayoutState = !isConnected
+    ? "hidden"
+    : sidebarMode
+    ? "sidebar"
+    : "panel";
+
+  function handleEndCall() {
+    setSidebarMode(false);
+    endCall();
   }
-
-  function endCall() {
-    setToken(null);
-    setServerUrl(null);
-  }
-
-  const isConnected = !!(token && serverUrl);
 
   return (
-    <main className="min-h-screen bg-background flex flex-col items-center relative overflow-hidden">
+    <main className="min-h-screen w-full bg-background relative overflow-hidden">
       <div className="fixed top-4 right-4 z-50">
         <AnimatedThemeToggler
           variant="circle"
@@ -68,33 +36,36 @@ export default function Home() {
         />
       </div>
 
-      <div className="flex-1 flex items-center justify-center w-full px-6 pt-16 pb-28">
-        {isConnected ? (
+      {layoutState !== "hidden" && (
+        <div
+          className={cn(
+            "fixed transition-all duration-500 ease-out z-30",
+            layoutState === "panel" && "top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2",
+            layoutState === "sidebar" && "top-0 left-0 h-full w-72 border-r border-border bg-background/80 backdrop-blur-sm",
+          )}
+        >
           <LiveKitRoom
-            token={token}
-            serverUrl={serverUrl}
+            token={token!}
+            serverUrl={serverUrl!}
             connect={true}
-            audio={true}
+            audio={false}
             video={false}
-            onDisconnected={endCall}
+            onDisconnected={handleEndCall}
+            className={layoutState === "sidebar" ? "h-full w-full flex items-center justify-center" : undefined}
           >
             <RoomAudioRenderer />
-            <ConnectedContent />
+            <ConnectedView onStateChange={setAgentState} sidebarMode={layoutState === "sidebar"} />
           </LiveKitRoom>
-        ) : (
-          <AgentPanel
-            agentState={null}
-            statusText={isConnecting ? "Connecting..." : "Tap to speak"}
-          />
-        )}
-      </div>
+        </div>
+      )}
 
-      <div className="fixed bottom-0 left-0 right-0 flex justify-center p-5">
-        <ChatBar
+      <div className="fixed bottom-0 left-0 right-0 flex justify-center p-5 z-40">
+        <ControlDock
+          state={controlState}
           onStart={startCall}
-          onEnd={endCall}
-          isConnected={isConnected}
-          isConnecting={isConnecting}
+          onEnd={handleEndCall}
+          sidebarMode={sidebarMode}
+          onToggleLayout={() => setSidebarMode((m) => !m)}
         />
       </div>
     </main>

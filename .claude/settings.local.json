@@ -5,7 +5,10 @@
       "PowerShell(python -m pip --version)",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:docs.livekit.io)",
-      "WebSearch"
+      "WebSearch",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\tlore\\\\OneDrive\\\\Desktop\\\\code\\\\cliff-ui-feature\\\\frontend\\\\src\" -Recurse -Directory)",
+      "Bash(Select-Object -ExpandProperty FullName)",
+      "Bash(Remove-Item *)"
     ]
   }
 }

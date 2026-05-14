@@ -12,7 +12,7 @@ const instrumentSerif = Instrument_Serif({
 });
 
 export const metadata: Metadata = {
-  title: "Cliff — Your Bay Area Outdoor Guide",
+  title: "Cliff",
   description: "AI-powered voice assistant for Bay Area hiking, fishing, hunting, biking, and climbing.",
 };
 
