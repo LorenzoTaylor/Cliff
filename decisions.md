@@ -39,7 +39,7 @@
 - **Choice**: WebRTC via LiveKit ✅
 
 ## Tool Calls (real-time)
-1. **Weather** — current conditions for a Bay Area location (OpenWeatherMap API)
+1. **Weather** — current conditions for a Bay Area location (Google Weather API)
 2. **Fire & closure status** — active fire perimeters + trail closures for a Bay Area location (CAL FIRE / USFS ArcGIS)
 3. **Nearby spots/trailheads** — Google Places API ("hiking trails near [location]"), ~200–400ms, costs per call
    - **Tradeoff**: Small cost per call, results depend on Google's POI data quality; acceptable for MVP/demo volume

@@ -253,12 +253,14 @@ class CliffAgent(Agent):
 
     @function_tool
     async def search_knowledge_base(self, context: RunContext, query: str) -> str:
-        """Search Bay Area outdoor knowledge base for regulations, ranger contacts, trail details, or seasonal rules.
+        """Search Bay Area outdoor knowledge base. Use this for ANY specific factual question — regulations,
+        ranger contacts, trail details, seasonal rules, permit requirements, district or regional staff names,
+        organizational contacts, management areas, fees, or any named person/role/place in Bay Area parks.
 
         Args:
-            query: What to look up, e.g. 'fishing license requirements' or 'Mt Tam ranger station phone number'
+            query: What to look up, e.g. 'Bay Region 3 manager' or 'fishing license requirements' or 'Mt Tam ranger station phone number'
         """
         docs = self._retriever.invoke(query)
         if not docs:
             return "No relevant information found in the knowledge base."
-        return "\n\n".join(d.page_content for d in docs[:3])
+        return "\n\n".join(d.page_content for d in docs)

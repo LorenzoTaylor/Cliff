@@ -45,7 +45,7 @@ async def entrypoint(ctx: JobContext):
 
     await session.start(room=ctx.room, agent=agent)
     await session.generate_reply(
-        instructions="Say exactly: G'day mate, what adventure are we planning today?"
+        instructions="Say exactly: G'day mate! Cliff here — I know every trail, creek, and crag in the Bay Area. What can I help you find?"
     )
 
 

@@ -14,7 +14,7 @@ class _NullRetriever:
         return []
 
 
-def create_rag_retriever(k: int = 4):
+def create_rag_retriever(k: int = 6):
     """Load the pre-built FAISS index and return a retriever.
 
     Falls back to a no-op retriever if the vector store hasn't been built yet.

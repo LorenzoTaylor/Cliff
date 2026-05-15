@@ -1,14 +1,8 @@
 {
   "permissions": {
     "allow": [
-      "PowerShell(pip *)",
-      "PowerShell(python -m pip --version)",
-      "WebFetch(domain:github.com)",
-      "WebFetch(domain:docs.livekit.io)",
-      "WebSearch",
-      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\tlore\\\\OneDrive\\\\Desktop\\\\code\\\\cliff-ui-feature\\\\frontend\\\\src\" -Recurse -Directory)",
-      "Bash(Select-Object -ExpandProperty FullName)",
-      "Bash(Remove-Item *)"
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\tlore\\\\OneDrive\\\\Desktop\\\\code\\\\cliff\\\\backend\" -Force)",
+      "Bash(Select-Object Name, Mode)"
     ]
   }
 }

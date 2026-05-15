@@ -12,8 +12,6 @@ const Orb = dynamic(
   { ssr: false }
 );
 
-const ORB_COLORS: [string, string] = ["#c2c2c2", "#ffffff"];
-
 interface AgentPanelProps {
   agentState: AgentState;
   children?: ReactNode;
@@ -21,15 +19,17 @@ interface AgentPanelProps {
   variant?: "card" | "sidebar";
 }
 
+const ORB_COLORS: [string, string] = ["#c2c2c2", "#ffffff"]
+
 export function AgentPanel({ agentState, children, className, variant = "card" }: AgentPanelProps) {
   return (
     <div className={cn(
-      "flex flex-col items-center gap-5",
-      variant === "card" && "w-full max-w-md rounded-2xl border border-border backdrop-blur-sm p-10",
+      "flex flex-col items-center gap-5 transition-all duration-500 ease-out",
+      variant === "card" && "w-full max-w-md rounded-2xl border border-border bg-background p-10",
       variant === "sidebar" && "w-full px-6 py-10",
       className
     )}>
-      <div className="min-w-full h-56 rounded-full backdrop-blur-2xl overflow-hidden">
+      <div className="min-w-full h-56 overflow-hidden">
         <Orb colors={ORB_COLORS} seed={42} agentState={agentState} />
       </div>
 

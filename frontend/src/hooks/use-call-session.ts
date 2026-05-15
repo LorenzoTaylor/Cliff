@@ -8,7 +8,7 @@ export interface CallSession {
   serverUrl: string | undefined;
   isConnected: boolean;
   controlState: ControlState;
-  startCall: () => Promise<void>;
+  startCall: (location?: { lat: number; lng: number; city?: string }) => Promise<void>;
   endCall: () => void;
   setAgentState: (state: string | undefined) => void;
 }
@@ -19,10 +19,16 @@ export function useCallSession(): CallSession {
   const [isConnecting, setIsConnecting] = useState(false);
   const [agentState, setAgentState] = useState<string | undefined>(undefined);
 
-  async function startCall() {
+  async function startCall(location?: { lat: number; lng: number; city?: string }) {
     setIsConnecting(true);
     try {
-      const res = await fetch("/api/token");
+      const params = new URLSearchParams();
+      if (location) {
+        params.set("lat", String(location.lat));
+        params.set("lng", String(location.lng));
+        if (location.city) params.set("city", location.city);
+      }
+      const res = await fetch(`/api/token?${params}`);
       const data = await res.json();
       setToken(data.token);
       setServerUrl(data.serverUrl);

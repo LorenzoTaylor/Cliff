@@ -19,10 +19,6 @@ export function LiveKitTranscript() {
   const { localParticipant } = useLocalParticipant();
   const [entries, setEntries] = useState<TranscriptEntry[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
-  const textRef = useRef<HTMLDivElement>(null);
-  const targetOffsetRef = useRef(0);
-  const currentOffsetRef = useRef(0);
-  const rafRef = useRef<number>(0);
 
   useEffect(() => {
     const handleTranscription = (
@@ -56,26 +52,12 @@ export function LiveKitTranscript() {
     return () => { room.off(RoomEvent.TranscriptionReceived, handleTranscription); };
   }, [room, localParticipant.identity]);
 
-  // Update the scroll target whenever text grows.
+  // Smooth-scroll to end on every text update
   useEffect(() => {
-    if (!containerRef.current || !textRef.current) return;
-    const overflow = textRef.current.scrollWidth - containerRef.current.clientWidth;
-    targetOffsetRef.current = overflow > 0 ? -overflow : 0;
+    const el = containerRef.current;
+    if (!el) return;
+    el.scrollTo({ left: el.scrollWidth, behavior: "smooth" });
   }, [entries]);
-
-  // Lerp toward the target offset every frame for continuous smooth motion.
-  useEffect(() => {
-    function animate() {
-      const diff = targetOffsetRef.current - currentOffsetRef.current;
-      if (Math.abs(diff) > 0.1 && textRef.current) {
-        currentOffsetRef.current += diff * 0.15;
-        textRef.current.style.transform = `translateX(${currentOffsetRef.current}px)`;
-      }
-      rafRef.current = requestAnimationFrame(animate);
-    }
-    rafRef.current = requestAnimationFrame(animate);
-    return () => { cancelAnimationFrame(rafRef.current); };
-  }, []);
 
   if (entries.length === 0) return null;
 
@@ -83,13 +65,15 @@ export function LiveKitTranscript() {
   const label = latest.speaker === "cliff" ? "Cliff" : "You";
 
   return (
-    // key resets scroll and re-triggers blur-in when a new segment starts
+    // key on latest.id: remounts (resetting scroll + blur-in) only when a NEW segment starts,
+    // not on every word update within the same segment
     <div
-      key={entries.length}
+      key={latest.id}
       ref={containerRef}
-      className="animate-blur-in w-full overflow-hidden text-sm [mask-image:linear-gradient(to_right,transparent,black_14px,black_calc(100%-14px),transparent)]"
+      className="animate-blur-in w-full overflow-x-auto text-sm [mask-image:linear-gradient(to_right,transparent,black_14px,black_calc(100%-14px),transparent)]"
+      style={{ scrollbarWidth: "none" }}
     >
-      <div ref={textRef} className="whitespace-nowrap">
+      <div className="whitespace-nowrap">
         <span className="text-muted-foreground">{label}:&nbsp;</span>
         <span className="text-foreground">{latest.text}</span>
       </div>

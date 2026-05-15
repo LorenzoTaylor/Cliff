@@ -77,6 +77,19 @@
   }
 }
 
+@keyframes blur-in-down {
+  from {
+    opacity: 0;
+    filter: blur(12px);
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+}
+
 .animate-blur-in {
   animation: blur-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -94,6 +107,22 @@
     opacity: 1;
     transform: scale(1) rotate(0deg);
   }
+}
+
+@keyframes sparkle-out {
+  0%   { opacity: 1; transform: scale(1) rotate(0deg); }
+  40%  { opacity: 1; transform: scale(1.1) rotate(3deg); }
+  100% { opacity: 0; transform: scale(0.3) rotate(-10deg); }
+}
+
+@keyframes fade-up-out {
+  from { opacity: 1; transform: translateY(0); filter: blur(0); }
+  to   { opacity: 0; transform: translateY(-14px); filter: blur(8px); }
+}
+
+@keyframes fog-shrink {
+  from { opacity: 1; transform: scaleY(1); }
+  to   { opacity: 0; transform: scaleY(0.15); }
 }
 
 @keyframes sparkle-loop {
@@ -120,4 +149,12 @@ html[data-magicui-theme-vt="active"]::view-transition-new(root) {
 
 html[data-magicui-theme-vt="active"]::view-transition-old(root) {
   display: none;
+}
+
+/* Suppress Google Maps billing-required error overlay */
+.gm-err-container,
+.gm-err-content,
+.gm-err-message,
+.dismissButton {
+  display: none !important;
 }

@@ -44,20 +44,32 @@ const PATH_SMALL =
   'C 25.5156 8.2774 25.4687 8.3242 26.1953 12.2383 ' +
   'C 26.2656 12.4961 26.4062 12.6602 26.6875 12.6602 Z'
 
-function sparkleStyle(delaySeconds: number, loop = false): React.CSSProperties {
+// Enter delays: large first, small last
+const ENTER_DELAYS = [0, 0.25, 0.5]
+// Leave delays: small first (reverse stagger), large last
+const LEAVE_DELAYS = [0.2, 0.1, 0]
+
+function sparkleStyle(index: number, delay: number, loop: boolean, leaving: boolean): React.CSSProperties {
+  if (leaving) {
+    return {
+      opacity: 1,
+      transformOrigin: 'center',
+      animation: `sparkle-out 0.38s cubic-bezier(0.22, 1, 0.36, 1) ${LEAVE_DELAYS[index]}s forwards`,
+    }
+  }
   if (loop) {
     return {
       opacity: 0,
       transformOrigin: 'center',
       animation: `sparkle-loop 1.8s ease-in-out infinite`,
-      animationDelay: `${delaySeconds}s`,
+      animationDelay: `${delay + ENTER_DELAYS[index]}s`,
     }
   }
   return {
     opacity: 0,
     transformOrigin: 'center',
     animation: `sparkle-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards`,
-    animationDelay: `${delaySeconds}s`,
+    animationDelay: `${delay + ENTER_DELAYS[index]}s`,
   }
 }
 
@@ -65,10 +77,12 @@ export function SparkleIcon({
   className = 'w-14 h-14',
   loop = false,
   delay = 0,
+  leaving = false,
 }: {
   className?: string
   loop?: boolean
   delay?: number
+  leaving?: boolean
 }) {
   return (
     <svg
@@ -78,9 +92,9 @@ export function SparkleIcon({
       aria-hidden="true"
     >
       <g transform="translate(56, 0) scale(-1, 1)">
-        <path d={PATH_LARGE}  style={sparkleStyle(delay + 0,    loop)} />
-        <path d={PATH_MEDIUM} style={sparkleStyle(delay + 0.25, loop)} />
-        <path d={PATH_SMALL}  style={sparkleStyle(delay + 0.5,  loop)} />
+        <path d={PATH_LARGE}  style={sparkleStyle(0, delay, loop, leaving)} />
+        <path d={PATH_MEDIUM} style={sparkleStyle(1, delay, loop, leaving)} />
+        <path d={PATH_SMALL}  style={sparkleStyle(2, delay, loop, leaving)} />
       </g>
     </svg>
   )
