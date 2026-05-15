@@ -1,8 +1,7 @@
 """
 Offline ingestion script — run once to build the FAISS vector store.
-Usage: python scripts/ingest.py
+Usage (from backend/): python scripts/ingest.py
 """
-import os
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -16,6 +15,9 @@ load_dotenv()
 PDF_DIR = Path(__file__).parent.parent / "data" / "pdfs"
 VECTOR_STORE_PATH = Path(__file__).parent.parent / "vector_store"
 
+# Map PDFs are image-only — skip pages with fewer than this many characters.
+MIN_PAGE_CHARS = 100
+
 
 def ingest():
     pdf_files = list(PDF_DIR.glob("*.pdf"))
@@ -23,26 +25,38 @@ def ingest():
         print(f"No PDFs found in {PDF_DIR}. Add PDFs and re-run.")
         return
 
-    print(f"Found {len(pdf_files)} PDF(s): {[f.name for f in pdf_files]}")
+    print(f"Found {len(pdf_files)} PDF(s)")
 
     docs = []
     for pdf in pdf_files:
         print(f"  Loading {pdf.name}...")
         loader = PyPDFLoader(str(pdf))
-        docs.extend(loader.load())
+        pages = loader.load()
+        useful = [p for p in pages if len(p.page_content.strip()) >= MIN_PAGE_CHARS]
+        if useful:
+            print(f"    {len(useful)}/{len(pages)} pages have text content")
+        else:
+            print(f"    Skipping — no text content (image-only PDF)")
+        docs.extend(useful)
 
-    print(f"Loaded {len(docs)} pages total. Splitting...")
+    if not docs:
+        print("No text content found across all PDFs. Aborting.")
+        return
 
-    splitter = RecursiveCharacterTextSplitter(chunk_size=800, chunk_overlap=100)
+    print(f"\nLoaded {len(docs)} pages with content. Splitting...")
+
+    # chunk_size=1000 / overlap=200 keeps enough context that a single regulation
+    # or trail description stays together; overlap ensures cross-chunk facts are retrieved.
+    splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
     chunks = splitter.split_documents(docs)
-    print(f"Created {len(chunks)} chunks. Embedding...")
+    print(f"Created {len(chunks)} chunks. Embedding with text-embedding-3-small...")
 
     embeddings = OpenAIEmbeddings(model="text-embedding-3-small")
     store = FAISS.from_documents(chunks, embeddings)
 
     VECTOR_STORE_PATH.mkdir(parents=True, exist_ok=True)
     store.save_local(str(VECTOR_STORE_PATH))
-    print(f"Vector store saved to {VECTOR_STORE_PATH}")
+    print(f"\nVector store saved to {VECTOR_STORE_PATH}")
 
 
 if __name__ == "__main__":

@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 
@@ -5,6 +6,7 @@ from dotenv import load_dotenv
 from livekit.agents import AgentSession, JobContext, WorkerOptions, cli
 from livekit.plugins import deepgram, elevenlabs, openai, silero
 
+from .prompts import build_system_prompt
 from .rag import create_rag_retriever
 from .tools import CliffAgent
 
@@ -15,8 +17,21 @@ logger = logging.getLogger("cliff-agent")
 async def entrypoint(ctx: JobContext):
     await ctx.connect()
 
+    user_location: str | None = None
+    for participant in ctx.room.remote_participants.values():
+        if participant.metadata:
+            try:
+                meta = json.loads(participant.metadata)
+                user_location = meta.get("location")
+            except (json.JSONDecodeError, AttributeError):
+                pass
+
     retriever = create_rag_retriever()
-    agent = CliffAgent(retriever=retriever)
+    agent = CliffAgent(
+        instructions=build_system_prompt(user_location),
+        retriever=retriever,
+        room=ctx.room,
+    )
 
     session = AgentSession(
         vad=silero.VAD.load(),
@@ -30,7 +45,7 @@ async def entrypoint(ctx: JobContext):
 
     await session.start(room=ctx.room, agent=agent)
     await session.generate_reply(
-        instructions="Greet the user as Cliff. One or two sentences max, keep it punchy. No emojis."
+        instructions="Say exactly: G'day mate, what adventure are we planning today?"
     )
 
 
