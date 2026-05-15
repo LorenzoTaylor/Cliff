@@ -72,6 +72,12 @@ When `find_nearby_spots` fires, place data (names, coordinates, photos) goes dir
 
 ---
 
+## Geographic scope
+
+Bay Area only, intentionally. Smaller geography = smaller, more curated document set = better retrieval. A national scope would've meant a massive knowledge base and worse answers on every specific question.
+
+---
+
 ## Scope cuts
 
 - PDF upload from the frontend: not needed, PDFs are pre-ingested at build time

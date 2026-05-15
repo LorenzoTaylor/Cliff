@@ -1,6 +1,12 @@
 # Cliff
 
-Cliff is a voice agent for Bay Area outdoor stuff. Ask where to go hiking, fishing, or climbing and it finds spots, checks weather and fire conditions, and looks up regulatory details from actual park documents.
+![Cliff preview](assets/preview.jpg)
+
+Cliff is a voice agent for Bay Area outdoor stuff, inspired by my childhood hero Steve Irwin. Ask where to go hiking, fishing, or climbing and it finds spots, checks weather and fire conditions, and looks up regulatory details from actual park documents.
+
+**Demo video:** https://youtu.be/gGXcJ6hBI5s
+
+**Design decisions:** [decisions.md](decisions.md)
 
 **Live demo:** https://cliff-puce.vercel.app
 
