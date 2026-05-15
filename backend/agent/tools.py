@@ -49,6 +49,20 @@ class CliffAgent(Agent):
         print(f"[cliff] publish_data done")
 
     @function_tool
+    async def search_knowledge_base(self, context: RunContext, query: str) -> str:
+        """Search Bay Area outdoor knowledge base. Use this for ANY specific factual question — regulations,
+        ranger contacts, trail details, seasonal rules, permit requirements, district or regional staff names,
+        organizational contacts, management areas, fees, or any named person/role/place in Bay Area parks.
+
+        Args:
+            query: What to look up, e.g. 'Bay Region 3 manager' or 'fishing license requirements' or 'Mt Tam ranger station phone number'
+        """
+        docs = self._retriever.invoke(query)
+        if not docs:
+            return "No relevant information found in the knowledge base."
+        return "\n\n".join(d.page_content for d in docs)
+
+    @function_tool
     async def get_weather(self, context: RunContext, location: str) -> str:
         """Get current weather conditions for a Bay Area location.
 
@@ -170,7 +184,7 @@ class CliffAgent(Agent):
         indoor_name_tokens = {"gym", "fitness", "center", "studio", "indoor",
                                "climbing gym", "bouldering gym", "indoor climbing"}
         outdoor_type_tags = {"park", "natural_feature", "campground", "rv_park",
-                              "amusement_park", "point_of_interest"}
+                             "point_of_interest"}
         # Activities where we require park/natural-feature typing to exclude urban gyms
         outdoor_strict_activities = {"climbing", "hiking"}
 
@@ -250,17 +264,3 @@ class CliffAgent(Agent):
 
         spots = ", ".join(p["name"] for p in places)
         return f"Top {activity} spots near {location}: {spots}"
-
-    @function_tool
-    async def search_knowledge_base(self, context: RunContext, query: str) -> str:
-        """Search Bay Area outdoor knowledge base. Use this for ANY specific factual question — regulations,
-        ranger contacts, trail details, seasonal rules, permit requirements, district or regional staff names,
-        organizational contacts, management areas, fees, or any named person/role/place in Bay Area parks.
-
-        Args:
-            query: What to look up, e.g. 'Bay Region 3 manager' or 'fishing license requirements' or 'Mt Tam ranger station phone number'
-        """
-        docs = self._retriever.invoke(query)
-        if not docs:
-            return "No relevant information found in the knowledge base."
-        return "\n\n".join(d.page_content for d in docs)
