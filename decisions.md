@@ -1,5 +1,7 @@
 # Design decisions
 
+![](assets/decisions-header.jpg)
+
 ## RAG
 
 **Vector store: FAISS on disk**
