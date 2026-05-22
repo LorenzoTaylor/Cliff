@@ -49,6 +49,10 @@ def ingest():
     # or trail description stays together; overlap ensures cross-chunk facts are retrieved.
     splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
     chunks = splitter.split_documents(docs)
+
+    for chunk in chunks:
+        chunk.metadata["document_tag"] = Path(chunk.metadata["source"]).stem
+
     print(f"Created {len(chunks)} chunks. Embedding with text-embedding-3-small...")
 
     embeddings = OpenAIEmbeddings(model="text-embedding-3-small")

@@ -2,6 +2,7 @@ import json
 import logging
 import math
 import os
+from pathlib import Path
 from typing import Optional
 
 import httpx
@@ -34,6 +35,15 @@ class CliffAgent(Agent):
         self._retriever = retriever
         self._room = room
 
+    async def _publish_attribution(self, source: str) -> None:
+        if not self._room:
+            return
+        await self._room.local_participant.publish_data(
+            payload=source.encode(),
+            reliable=True,
+            topic="cliff:attribution",
+        )
+
     async def _publish_places(self, places: list[dict]) -> None:
         if not self._room:
             logger.warning("_publish_places: room is None, skipping")
@@ -60,6 +70,13 @@ class CliffAgent(Agent):
         docs = self._retriever.invoke(query)
         if not docs:
             return "No relevant information found in the knowledge base."
+
+        top_source = docs[0].metadata.get(
+            "document_tag",
+            Path(docs[0].metadata.get("source", "unknown")).stem,
+        )
+        await self._publish_attribution(top_source)
+
         return "\n\n".join(d.page_content for d in docs)
 
     @function_tool

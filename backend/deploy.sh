@@ -2,6 +2,7 @@
 # deploy.sh — build and deploy cliff-agent to AWS ECS Fargate
 # Prerequisites: aws configure, Docker Desktop running, backend/.env populated
 set -euo pipefail
+export MSYS_NO_PATHCONV=1  # prevent Git Bash from converting /foo paths to C:/Program Files/Git/foo
 
 REGION="us-east-1"
 REPO_NAME="cliff-agent"
@@ -12,7 +13,7 @@ LOG_GROUP="/ecs/cliff-agent"
 ROLE_NAME="cliff-ecs-execution-role"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-ENV_FILE="$SCRIPT_DIR/.env"
+ENV_FILE=".env"  # relative — script must be run from backend/
 
 # ── 0. Validate prerequisites ────────────────────────────────────────────────
 
@@ -49,7 +50,7 @@ aws ecr get-login-password --region "$REGION" \
   | docker login --username AWS --password-stdin "$ACCOUNT_ID.dkr.ecr.$REGION.amazonaws.com"
 
 echo "==> Building Docker image..."
-docker build -t "$REPO_NAME:latest" "$SCRIPT_DIR"
+docker build -t "$REPO_NAME:latest" .
 
 echo "==> Pushing image to ECR..."
 docker tag "$REPO_NAME:latest" "$ECR_URI:latest"
@@ -139,7 +140,9 @@ aws iam put-role-policy \
 
 # ── 5. CloudWatch log group ──────────────────────────────────────────────────
 
-aws logs create-log-group --log-group-name "$LOG_GROUP" --region "$REGION" 2>/dev/null || true
+aws logs describe-log-groups --log-group-name-prefix "$LOG_GROUP" --region "$REGION" \
+  | grep -q "$LOG_GROUP" \
+  || aws logs create-log-group --log-group-name "$LOG_GROUP" --region "$REGION"
 
 # ── 6. ECS cluster ───────────────────────────────────────────────────────────
 
